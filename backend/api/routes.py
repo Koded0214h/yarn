@@ -43,7 +43,7 @@ def chat(body: ChatRequest, db: DBSession = Depends(get_db)):
     requires_confirm = False
     pending_action   = None
 
-    # ── Execute intent ─────────────────────────────────────────────────────
+    # Execute intent
     if intent == 'transfer':
         amount    = params.get('amount', 0)
         recipient = params.get('recipient', 'recipient')
@@ -90,7 +90,7 @@ def chat(body: ChatRequest, db: DBSession = Depends(get_db)):
         action_taken = ActionTaken(type='chat', status='success')
         update_session(db, session, clear_pending=True)
 
-    # ── Append to history ──────────────────────────────────────────────────
+    # Append to history
     history = list(session.history or [])
     history.append({'role': 'user',      'text': body.message})
     history.append({'role': 'assistant', 'text': reply})
