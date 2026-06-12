@@ -61,7 +61,7 @@ async def entrypoint(ctx: JobContext):
 
     # Listen for DTMF (keypad press) events to switch languages
     @ctx.room.on("sip_dtmf_received")
-    async def on_sip_dtmf(dtmf):
+    def on_sip_dtmf(dtmf):
         digit = dtmf.digit
         logger.info("Received DTMF digit: %s", digit)
 
@@ -83,14 +83,16 @@ async def entrypoint(ctx: JobContext):
             spitch_tts._opts.language = LanguageCode(lang_code)
             spitch_tts._opts.voice = voice
 
-            # Dynamically lock the LLM into the selected language
-            new_instructions = SYSTEM_PROMPT + f"\nThe caller has chosen {lang_name}. You MUST now speak, reply, and interact ONLY in {lang_name}. Keep all responses short and conversational."
-            await assistant.update_instructions(new_instructions)
+            # Define the async operations to run inside a task
+            async def update_agent_state():
+                new_instructions = SYSTEM_PROMPT + f"\nThe caller has chosen {lang_name}. You MUST now speak, reply, and interact ONLY in {lang_name}. Keep all responses short and conversational."
+                await assistant.update_instructions(new_instructions)
+                session.generate_reply(
+                    instructions=f"Greet the user warmly in {lang_name} and ask how you can help them today. Remember to keep it very short."
+                )
 
-            # Instruct the session to greet the user in their selected language
-            session.generate_reply(
-                instructions=f"Greet the user warmly in {lang_name} and ask how you can help them today. Remember to keep it very short."
-            )
+            # Schedule the async updates on the running event loop
+            asyncio.create_task(update_agent_state())
 
     # Start the session
     await session.start(room=ctx.room, agent=assistant)
