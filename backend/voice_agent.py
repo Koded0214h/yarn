@@ -61,7 +61,7 @@ async def entrypoint(ctx: JobContext):
 
     # Listen for DTMF (keypad press) events to switch languages
     @ctx.room.on("sip_dtmf_received")
-    def on_sip_dtmf(dtmf):
+    async def on_sip_dtmf(dtmf):
         digit = dtmf.digit
         logger.info("Received DTMF digit: %s", digit)
 
@@ -85,13 +85,11 @@ async def entrypoint(ctx: JobContext):
 
             # Dynamically lock the LLM into the selected language
             new_instructions = SYSTEM_PROMPT + f"\nThe caller has chosen {lang_name}. You MUST now speak, reply, and interact ONLY in {lang_name}. Keep all responses short and conversational."
-            assistant.update_instructions(new_instructions)
+            await assistant.update_instructions(new_instructions)
 
             # Instruct the session to greet the user in their selected language
-            asyncio.create_task(
-                session.generate_reply(
-                    instructions=f"Greet the user warmly in {lang_name} and ask how you can help them today. Remember to keep it very short."
-                )
+            session.generate_reply(
+                instructions=f"Greet the user warmly in {lang_name} and ask how you can help them today. Remember to keep it very short."
             )
 
     # Start the session
