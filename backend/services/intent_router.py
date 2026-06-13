@@ -90,7 +90,7 @@ def classify_intent(message: str, history: list) -> dict:
         return _heuristic_fallback(message)
 
 
-# ── Heuristic fallback (no API key / API down) ───────────────────────────────
+# Heuristic fallback (no API key / API down)
 def _heuristic_fallback(message: str) -> dict:
     import re
     lower = message.lower()

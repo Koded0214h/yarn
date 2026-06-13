@@ -3,3 +3,6 @@ __pycache__/
 .env
 .venv/
 .vscode/
+venv/
+backend/venv/
+backend/autocomplete/
